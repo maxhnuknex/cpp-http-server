@@ -1,3 +1,26 @@
+# Build files
 build/
-.DS_Store
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# Binaries
+server
+*.out
+*.exe
+*.o
+*.a
+*.so
+*.dylib
+
+# IDE
 .vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
