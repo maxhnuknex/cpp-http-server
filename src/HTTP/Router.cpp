@@ -18,11 +18,16 @@ void Router::addStaticRoute(Handler handler)
 
 HTTPResponse Router::handle(const HTTPRequest& request)
 {
+    if(request.method == "DELETE")
+    {
+        auto it = routes.find(request.method + " " + "/tasks/");
+        return it->second(request);
+    }
     std::string line = request.method + " " + request.path;
 
     auto it = routes.find(line);
 
-    if (it!= routes.end())
+    if (it != routes.end())
     {
         return it->second(request);
     }

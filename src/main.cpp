@@ -3,6 +3,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <vector>
+#include <string>
 
 #include "../include/HTTP/HTTPRequest.h"
 #include "../include/HTTP/HTTPResponse.h"
@@ -11,10 +13,32 @@
 #include "../include/HTTP/StaticFileHandler.h"
 #include "../include/TCPserver/tcpserver.h"
 #include "../include/HTTP/Pipeline.h"
+#include "../include/RestAPI/TaskService.h"
+#include "../include/RestAPI/TaskController.h"
+
 
 int main()
 {
     Router router;
+
+    TaskService taskService;
+    TaskController taskController(taskService);
+
+    router.addRoute("GET", "/tasks", [&taskController](const HTTPRequest & request)
+    {
+        return taskController.getTasks(request);
+    });
+
+    router.addRoute("POST", "/tasks", [&taskController](const HTTPRequest & request)
+    {
+        return taskController.creatTask(request);
+    });
+
+    router.addRoute("DELETE", "/tasks/", [&taskController](const HTTPRequest & request)
+    {
+        return taskController.deleteTask(request);
+    });
+
     StaticFileHandler staticFile("public");
     router.addStaticRoute([&staticFile](const HTTPRequest& request) 
         {

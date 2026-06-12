@@ -16,6 +16,8 @@ add_executable(server
     src/HTTP/StaticFileHandler.cpp
     src/TCPserver/ThreadPool.cpp
     src/HTTP/Pipeline.cpp
+    src/RestAPI/TaskController.cpp
+    src/RestAPI/TaskService.cpp
 )
 
 target_include_directories(server PRIVATE
