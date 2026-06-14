@@ -18,11 +18,8 @@ void Router::addStaticRoute(Handler handler)
 
 HTTPResponse Router::handle(const HTTPRequest& request)
 {
-    if(request.method == "DELETE")
-    {
-        auto it = routes.find(request.method + " " + "/tasks/");
-        return it->second(request);
-    }
+    
+    
     std::string line = request.method + " " + request.path;
 
     auto it = routes.find(line);
@@ -31,16 +28,10 @@ HTTPResponse Router::handle(const HTTPRequest& request)
     {
         return it->second(request);
     }
-    else{
+    if (staticHendler)
+    {
         return staticHendler(request);
     }
-    
-    HTTPResponse response;
-    response.statusCode = 404;
-    response.statusText = "Not Found";
-    response.body = "Not Found";
-    response.headers["Content-Type"] = "text/plain";
-    response.headers["Content-Length"] = std::to_string(response.body.size());
 
-    return response;
+    return HTTPErrors::notFound();
 }

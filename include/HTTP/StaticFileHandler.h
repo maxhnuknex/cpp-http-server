@@ -6,6 +6,7 @@
 
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
+#include "HTTPErrors.h"
 
 class StaticFileHandler
 {

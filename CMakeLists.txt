@@ -18,6 +18,7 @@ add_executable(server
     src/HTTP/Pipeline.cpp
     src/RestAPI/TaskController.cpp
     src/RestAPI/TaskService.cpp
+    src/HTTP/HTTPErrors.cpp
 )
 
 target_include_directories(server PRIVATE

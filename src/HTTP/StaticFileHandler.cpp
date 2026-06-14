@@ -1,68 +1,26 @@
 #include "../../include/HTTP/StaticFileHandler.h"
-namespace{
-    HTTPResponse makeMethodNotAllowedResponse()
-    {
-        HTTPResponse response;
-
-        response.statusCode = 405;
-        response.statusText = "Method Not Allowed";
-        response.body = "405 Method Not Allowed";
-
-        response.headers["Content-Type"] = "text/plain";
-        response.headers["Content-Length"] = std::to_string(response.body.size());
-
-        return response;
-    }
-    HTTPResponse makeForbiddenResponse()
-    {
-        HTTPResponse response;
-
-        response.statusCode = 403;
-        response.statusText = "Forbidden";
-        response.body = "403 Forbidden";
-
-        response.headers["Content-Type"] = "text/plain";
-        response.headers["Content-Length"] = std::to_string(response.body.size());
-
-        return response;
-    }
-    HTTPResponse makeNotFoundResponse()
-    {
-        HTTPResponse response;
-
-        response.statusCode = 404;
-        response.statusText = "Not Found";
-        response.body = "404 Not Found";
-
-        response.headers["Content-Type"] = "text/plain";
-        response.headers["Content-Length"] = std::to_string(response.body.size());
-
-        return response;
-    }
-}
+#include "../../include/HTTP/HTTPErrors.h"
 
 HTTPResponse StaticFileHandler::handle(const HTTPRequest& request)
 {
     if (request.method !="GET")
     {
-        return makeMethodNotAllowedResponse();
+        return HTTPErrors::methodNotAllowed("GET");
     }
     if(!isSafePath(request.path))
     {
-        return makeForbiddenResponse();
+        return HTTPErrors::forbidden();
     }
 
     std::string filePath = buildFilePath(request.path);
     if (!std::filesystem::exists(filePath))
     {
-        return makeNotFoundResponse();
+        return HTTPErrors::notFound();
     }
 
     std::string body = readFile(filePath);
 
     HTTPResponse response;
-    response.statusCode = 200;
-    response.statusText ="OK";
     response.body = body;
     response.headers["Content-Type"] = getContentType(filePath);
     response.headers["Content-Length"] = std::to_string(body.size());

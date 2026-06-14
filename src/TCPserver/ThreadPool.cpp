@@ -1,14 +1,10 @@
 #include "../../include/TCPserver/ThreadPool.h"
 
-ThreadPool::ThreadPool (int count)
+ThreadPool::ThreadPool(int count) : stop(false)
 {
-    for(int i=0;i<count;i++)
+    for (int i = 0; i < count; ++i)
     {
-        stop = false;
-        for(int i = 0;i<count;i++)
-        {
-            workers.emplace_back(&ThreadPool::workerLoop, this);
-        }
+        workers.emplace_back(&ThreadPool::workerLoop, this);
     }
 }
 

@@ -1,4 +1,3 @@
-#pragma once
 #include "../../include/TCPserver/tcpserver.h"
 
 #include <sys/socket.h>
@@ -24,7 +23,7 @@ void TCPserver::start(std::function<std::string(const std::string&)> requestHand
         int client_fd = acceptClient();
         if (client_fd == -1)continue;
 
-        Trpool.addTask([&]{
+        Trpool.addTask([this, client_fd, requestHandler]{
             serverClient(client_fd, requestHandler);
         });
     }
