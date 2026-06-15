@@ -10,6 +10,7 @@ public:
     std::string version;
 
     std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<std::string, std::string> pathParams;
 
     std::string body;
 };

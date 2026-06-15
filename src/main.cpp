@@ -13,30 +13,19 @@
 #include "../include/HTTP/StaticFileHandler.h"
 #include "../include/TCPserver/tcpserver.h"
 #include "../include/HTTP/Pipeline.h"
-#include "../include/RestAPI/TaskService.h"
-#include "../include/RestAPI/TaskController.h"
+#include "../include/RestApi/UserService.h"
+#include "../include/RestApi/UserController.h"
 
 
 int main()
 {
     Router router;
 
-    TaskService taskService;
-    TaskController taskController(taskService);
+    UserService userService;
+    UserController userController(userService);
 
-    router.addRoute("GET", "/tasks", [&taskController](const HTTPRequest & request)
-    {
-        return taskController.getTasks(request);
-    });
-
-    router.addRoute("POST", "/tasks", [&taskController](const HTTPRequest & request)
-    {
-        return taskController.creatTask(request);
-    });
-
-    router.addRoute("DELETE", "/tasks/", [&taskController](const HTTPRequest & request)
-    {
-        return taskController.deleteTask(request);
+    router.addRoute("GET", "/user/{id}", [&userController](const HTTPRequest& request){
+        return userController.getUser(request);
     });
 
     StaticFileHandler staticFile("public");

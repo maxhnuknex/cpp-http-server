@@ -12,6 +12,9 @@ public:
     std::unordered_map<std::string, std::string> headers;
 
     std::string body;
+    HTTPResponse() {
+        headers["Content-Type"] = "application/json";
+    }
 
     std::string toString() const;
 };
