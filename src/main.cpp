@@ -34,6 +34,10 @@ int main()
         return userController.createUser(request);
     });
 
+    router.addRoute("DELETE", "/users/{id}", [&userController](const HTTPRequest& request){
+        return userController.deleteUser(request);
+    });
+
     StaticFileHandler staticFile("public");
     router.addStaticRoute([&staticFile](const HTTPRequest& request) 
         {

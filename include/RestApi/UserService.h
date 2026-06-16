@@ -12,4 +12,5 @@ public:
 
     std::optional<User> getUserById(int id) const;
     User setUser(const std::string& username, const std::string& email);
+    bool deleteUser(int id);
 };

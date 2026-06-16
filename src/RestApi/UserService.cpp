@@ -25,3 +25,8 @@ User UserService::setUser(const std::string& username,
     nexId++;
     return users[nexId-1];
 }
+
+bool UserService::deleteUser(int id)
+{
+    return users.erase(id)>0;
+}

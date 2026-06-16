@@ -87,3 +87,36 @@ HTTPResponse UserController::createUser(const HTTPRequest& request)
 
     return response;
 }
+
+HTTPResponse UserController::deleteUser(const HTTPRequest& request)
+{
+    auto idIt = request.pathParams.find("id");
+    if(idIt == request.pathParams.end())
+    {
+        return HTTPErrors::invalidPathParam("id");
+    }
+
+    int id{};
+
+    try
+    {
+        id = std::stoi(idIt->second);
+    }
+    catch(...)
+    {
+        return HTTPErrors::validationError("id");
+    }
+
+    int result = userService.deleteUser(id);
+
+    if(!result)return HTTPErrors::notFound();
+    
+    HTTPResponse response;
+    response.statusCode =204;
+    response.statusText = "Not content";
+
+    response.body = "";
+    response.headers["Content-Lenght"] = "0";
+
+    return response;
+}

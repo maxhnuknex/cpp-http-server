@@ -11,4 +11,5 @@ public:
     
     HTTPResponse getUser(const HTTPRequest& request);
     HTTPResponse createUser(const HTTPRequest& request);
+    HTTPResponse deleteUser(const HTTPRequest& request);
 };
