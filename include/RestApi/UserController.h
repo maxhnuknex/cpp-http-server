@@ -8,6 +8,7 @@ class UserController{
     UserService& userService;
 public:
     UserController(UserService &);
-
+    
     HTTPResponse getUser(const HTTPRequest& request);
+    HTTPResponse createUser(const HTTPRequest& request);
 };

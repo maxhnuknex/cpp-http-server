@@ -70,10 +70,12 @@ HTTPResponse Router::handle(const HTTPRequest& request)
             continue;
         }
 
+        if(rout.pathPattern == request.path) return rout.handler(request);
+
         std::unordered_map<std::string, std::string> pathParam;
         if(mathPath(rout.pathPattern, request.path, pathParam))
         {
-            HTTPRequest requestRout;
+            HTTPRequest requestRout = request;
             requestRout.pathParams = pathParam;
 
             return rout.handler(requestRout);

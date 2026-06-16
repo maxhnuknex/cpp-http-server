@@ -24,8 +24,14 @@ int main()
     UserService userService;
     UserController userController(userService);
 
-    router.addRoute("GET", "/user/{id}", [&userController](const HTTPRequest& request){
+    router.addRoute("GET", "/users/{id}", [&userController](const HTTPRequest& request)
+    {
         return userController.getUser(request);
+    });
+
+    router.addRoute("POST", "/users", [&userController](const HTTPRequest& request)
+    {
+        return userController.createUser(request);
     });
 
     StaticFileHandler staticFile("public");

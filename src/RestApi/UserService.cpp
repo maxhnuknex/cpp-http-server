@@ -17,3 +17,11 @@ std::optional<User> UserService::getUserById(int id) const
 
     return it->second;
 }
+
+User UserService::setUser(const std::string& username,
+                            const std::string& email)
+{
+    users[nexId] = User{nexId, username, email};
+    nexId++;
+    return users[nexId-1];
+}
