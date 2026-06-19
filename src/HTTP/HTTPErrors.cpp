@@ -62,3 +62,7 @@ HTTPResponse HTTPErrors::methodNotAllowed(const std::string method)
     return response;
 }
 
+HTTPResponse HTTPErrors::unsupportedMediaType()
+{
+    return toJson(415, "Unsupported Media Type", "Unsupported media type", "UNSUPPORTED_MEDIA_TYPE");
+}

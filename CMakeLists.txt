@@ -18,8 +18,12 @@ add_executable(server
     src/TCPserver/ThreadPool.cpp
     src/HTTP/Pipeline.cpp
     src/HTTP/HTTPErrors.cpp
-    src/RestApi/UserController.cpp
-    src/RestApi/UserService.cpp
+    src/RestApi/User/UserController.cpp
+    src/RestApi/User/UserService.cpp
+    src/RestApi/Project_Api/ProjectController.cpp
+    src/RestApi/Project_Api/ProjectService.cpp
+    src/RestApi/Issue/IssueController.cpp
+    src/RestApi/Issue/IssueService.cpp
 )
 
 target_include_directories(server PRIVATE

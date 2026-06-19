@@ -13,9 +13,12 @@
 #include "../include/HTTP/StaticFileHandler.h"
 #include "../include/TCPserver/tcpserver.h"
 #include "../include/HTTP/Pipeline.h"
-#include "../include/RestApi/UserService.h"
-#include "../include/RestApi/UserController.h"
-
+#include "../include/RestApi/User/UserService.h"
+#include "../include/RestApi/User/UserController.h"
+#include "../include/RestApi/Project_Api/ProjectService.h"
+#include "../include/RestApi/Project_Api/ProjectController.h"
+#include "../include/RestApi/Issue/IssueService.h"
+#include "../include/RestApi/Issue/IssueController.h"
 
 int main()
 {
@@ -23,6 +26,12 @@ int main()
 
     UserService userService;
     UserController userController(userService);
+
+    ProjectService projectService(userService);
+    ProjectController ProjectController(projectService);
+
+    IssueService issueService(userService, projectService);
+    IssueController issueController(issueService);
 
     router.addRoute("GET", "/users/{id}", [&userController](const HTTPRequest& request)
     {
@@ -36,6 +45,14 @@ int main()
 
     router.addRoute("DELETE", "/users/{id}", [&userController](const HTTPRequest& request){
         return userController.deleteUser(request);
+    });
+
+    router.addRoute("POST", "/projects", [&ProjectController](const HTTPRequest& request){
+        return ProjectController.createProjecte(request);
+    });
+
+    router.addRoute("POST", "/projects/{project_id}/issue", [&issueController](const HTTPRequest& request){
+        return issueController.createIssue(request);
     });
 
     StaticFileHandler staticFile("public");
