@@ -13,6 +13,7 @@
 #include "../include/HTTP/StaticFileHandler.h"
 #include "../include/TCPserver/tcpserver.h"
 #include "../include/HTTP/Pipeline.h"
+
 #include "../include/RestApi/User/UserService.h"
 #include "../include/RestApi/User/UserController.h"
 #include "../include/RestApi/Project_Api/ProjectService.h"
@@ -20,11 +21,22 @@
 #include "../include/RestApi/Issue/IssueService.h"
 #include "../include/RestApi/Issue/IssueController.h"
 
+#include "../include/Database/Database.h"
+#include "../include/Database/DatabaseMigrator.h"
+
+#include "../include/RestApi/User/SQLiteUserRepository.h"
+
 int main()
 {
+    Database database("server.db");
+    DatabaseMigrator databaseMigrator(database);
+    databaseMigrator.run();
+
+    SQLiteUserRepository repository(database);
+
     Router router;
 
-    UserService userService;
+    UserService userService(repository);
     UserController userController(userService);
 
     ProjectService projectService(userService);

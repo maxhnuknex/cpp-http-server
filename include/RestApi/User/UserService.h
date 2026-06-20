@@ -1,14 +1,12 @@
 #pragma once
-#include "User.h"
+#include "IUserRepository.h"
 
-#include <unordered_map>
 #include <optional>
 
 class UserService{
-    std::unordered_map<int, User> users; 
-    int nexId=3;
+    IUserRepository& repository;
 public:
-    UserService();
+    UserService(IUserRepository& repository);
 
     std::optional<User> getUserById(int id) const;
     User setUser(const std::string& username, const std::string& email);

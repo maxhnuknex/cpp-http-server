@@ -113,7 +113,7 @@ HTTPResponse UserController::deleteUser(const HTTPRequest& request)
     
     HTTPResponse response;
     response.statusCode =204;
-    response.statusText = "Not content";
+    response.statusText = "No content";
 
     response.body = "";
     response.headers["Content-Lenght"] = "0";
