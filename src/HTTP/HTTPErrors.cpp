@@ -14,7 +14,7 @@ HTTPResponse HTTPErrors::toJson(int statusCode,
     response.statusText = statusText;
 
     json body;
-    body["errror"] = error;
+    body["error"] = error;
     body["code"] = code;
 
     response.headers["Content-Type"] = "application/json";
@@ -65,4 +65,24 @@ HTTPResponse HTTPErrors::methodNotAllowed(const std::string method)
 HTTPResponse HTTPErrors::unsupportedMediaType()
 {
     return toJson(415, "Unsupported Media Type", "Unsupported media type", "UNSUPPORTED_MEDIA_TYPE");
+}
+
+HTTPResponse HTTPErrors::conflict(const std::string& message)
+{
+    return toJson(
+        409,
+        "Conflict",
+        message,
+        "CONFLICT"
+    );
+}
+
+HTTPResponse HTTPErrors::serverError()
+{
+    return toJson(
+        500,
+        "Internal server Error",
+        "Internal server error",
+        "INTERNAL_ERROR"
+    );
 }

@@ -9,6 +9,6 @@ public:
     UserService(IUserRepository& repository);
 
     std::optional<User> getUserById(int id) const;
-    User setUser(const std::string& username, const std::string& email);
+    User setUser(UserCreateCommand&);
     bool deleteUser(int id);
 };

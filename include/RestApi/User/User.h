@@ -7,3 +7,8 @@ struct User{
     std::string username;
     std::string email;
 };
+
+struct UserCreateCommand{
+    std::string username;
+    std::string email;
+};

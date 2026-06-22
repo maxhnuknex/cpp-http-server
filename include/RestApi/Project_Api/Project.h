@@ -7,4 +7,13 @@ struct Project
     int ownerId;
     std::string name;
     std::string description;
+    std::string createdAt;
+    std::string updatedAt;
+};
+
+struct ProjectCreateCommand
+{
+    int ownerId;
+    std::string name;
+    std::string description;
 };

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(Server_project)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +18,7 @@ add_executable(server
     src/HTTP/StaticFileHandler.cpp
     src/HTTP/Pipeline.cpp
     src/HTTP/HTTPErrors.cpp
+    src/HTTP/HTTPJson.cpp
 
     src/TCPserver/TCPserver.cpp
     src/TCPserver/ThreadPool.cpp
@@ -27,12 +29,16 @@ add_executable(server
 
     src/RestApi/Project_Api/ProjectController.cpp
     src/RestApi/Project_Api/ProjectService.cpp
+    src/RestApi/Project_Api/SQLiteProjectRepository.cpp
 
     src/RestApi/Issue/IssueController.cpp
     src/RestApi/Issue/IssueService.cpp
 
     src/Database/Database.cpp
     src/Database/DatabaseMigrator.cpp
+    src/Database/SqliteStatement.cpp
+
+    
     
 )
 

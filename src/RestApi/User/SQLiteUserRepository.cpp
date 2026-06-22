@@ -1,4 +1,6 @@
 #include "../../../include/RestApi/User/SQLiteUserRepository.h"
+#include "../../../include/Errors/AppErrors.h"
+#include "../../../include/Database/SqliteStatement.h"
 
 SQLiteUserRepository::SQLiteUserRepository (Database& database)
     : database(database)
@@ -23,41 +25,25 @@ User SQLiteUserRepository::toUser(sqlite3_stmt* statement)
     return user;
 }
 
-User SQLiteUserRepository::createUser(
-    const std::string& username,
-    const std::string& email
-)
+User SQLiteUserRepository::createUser(UserCreateCommand& command)
 {
+    const std::string& username = command.username;
+    const std::string& email = command.email;
     const char* sql = R"SQL(
         INSERT INTO users (username, email)
         VALUES (?, ?);
     )SQL";
 
-    sqlite3_stmt* statament;
-    int result = sqlite3_prepare_v2(
-        database.connection(),
-        sql,
-        -1,
-        &statament,
-        nullptr
-    );
-    
-    if(result!=SQLITE_OK)
-    {
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
-    }
+    SqliteStatement statement(database,sql);
 
-    sqlite3_bind_text(statament, 1, username.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(statament, 2, email.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement.getStatement(), 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement.getStatement(), 2, email.c_str(), -1, SQLITE_TRANSIENT);
 
-    result = sqlite3_step(statament);
+    int result = sqlite3_step(statement.getStatement());
     if(result!=SQLITE_DONE)
     {
-        sqlite3_finalize(statament);
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
+        throw DatabaseError(sqlite3_errmsg(database.connection()));
     }
-
-    sqlite3_finalize(statament);
 
     int id = static_cast<int>(sqlite3_last_insert_rowid(database.connection()));
 
@@ -72,37 +58,22 @@ std::optional<User> SQLiteUserRepository::findById(int id)
         WHERE id=?;
     )SQL";
 
-    sqlite3_stmt* statament = nullptr;
-    int result = sqlite3_prepare_v2(
-        database.connection(),
-        sql,
-        -1,
-        &statament,
-        nullptr
-    );
+    SqliteStatement statement(database, sql);
 
-    if(result!= SQLITE_OK)
-    {
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
-    }
+    sqlite3_bind_int(statement.getStatement(),1,id);
 
-    sqlite3_bind_int(statament,1,id);
-
-    result = sqlite3_step(statament);
+    int result = sqlite3_step(statement.getStatement());
 
     if(result==SQLITE_ROW)
     {
-        User user = toUser(statament);
-        sqlite3_finalize(statament);
+        User user = toUser(statement.getStatement());
         return user;
     }
     if(result == SQLITE_DONE)
     {
-        sqlite3_finalize(statament);
         return std::nullopt;
     }
-    sqlite3_finalize(statament);
-    throw std::runtime_error(sqlite3_errmsg(database.connection()));
+    throw DatabaseError(sqlite3_errmsg(database.connection()));
 }
 
 std::optional<User> SQLiteUserRepository::findByEmail(const std::string& email)
@@ -113,35 +84,21 @@ std::optional<User> SQLiteUserRepository::findByEmail(const std::string& email)
         WHERE email = ?;
     )SQL";
 
-    sqlite3_stmt* statement = nullptr;
-    int result = sqlite3_prepare(
-        database.connection(),
-        sql,
-        -1,
-        &statement,
-        nullptr
-    );
-    if(result!=SQLITE_OK)
-    {
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
-    }
+    SqliteStatement statement(database, sql);
 
-    sqlite3_bind_text(statement, 1, email.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement.getStatement(), 1, email.c_str(), -1, SQLITE_TRANSIENT);
 
-    result = sqlite3_step(statement);
+    int result = sqlite3_step(statement.getStatement());
     if(result == SQLITE_ROW)
     {
-        User user = toUser(statement);
-        sqlite3_finalize(statement);
+        User user = toUser(statement.getStatement());
         return user;
     }
     if(result == SQLITE_DONE)
     {
-        sqlite3_finalize(statement);
         return std::nullopt;
     }
-    sqlite3_finalize(statement);
-    throw std::runtime_error(sqlite3_errmsg(database.connection()));
+    throw DatabaseError(sqlite3_errmsg(database.connection()));
 }
 
 bool SQLiteUserRepository::deleteUser(int id)
@@ -151,30 +108,16 @@ bool SQLiteUserRepository::deleteUser(int id)
         WHERE id = ?;
     )SQL";
 
-    sqlite3_stmt* statament = nullptr;
-    int result = sqlite3_prepare(
-        database.connection(),
-        sql,
-        -1,
-        &statament,
-        nullptr
-    );
-    if(result!=SQLITE_OK)
-    {
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
-    }
+    SqliteStatement statement(database, sql);
 
-    sqlite3_bind_int(statament, 1, id);
+    sqlite3_bind_int(statement.getStatement(), 1, id);
 
-    result = sqlite3_step(statament);
+    int result = sqlite3_step(statement.getStatement());
     if(result != SQLITE_DONE)
     {
-        sqlite3_finalize(statament);
-        throw std::runtime_error(sqlite3_errmsg(database.connection()));
+        throw DatabaseError(sqlite3_errmsg(database.connection()));
     }
 
     int deleteRow = sqlite3_changes(database.connection());
-
-    sqlite3_finalize(statament);
     return deleteRow ==1;
 }

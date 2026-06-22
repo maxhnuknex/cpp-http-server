@@ -1,4 +1,5 @@
 #include "../../../include/RestApi/User/UserService.h"
+#include "../../../include/Errors/AppErrors.h"
 
 UserService::UserService (IUserRepository& repository)
     : repository(repository)
@@ -9,10 +10,13 @@ std::optional<User> UserService::getUserById(int id) const
     return repository.findById(id);
 }
 
-User UserService::setUser(const std::string& username,
-                            const std::string& email)
+User UserService::setUser(UserCreateCommand& command)
 {
-    return repository.createUser(username, email);
+    if(repository.findByEmail(command.email).has_value())
+    {
+        throw ConflictError("Conflict email");
+    }
+    return repository.createUser(command);
 }
 
 bool UserService::deleteUser(int id)

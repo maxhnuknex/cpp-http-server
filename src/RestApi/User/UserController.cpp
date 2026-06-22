@@ -1,122 +1,87 @@
 #include "../../../include/RestApi/User/UserController.h"
+#include "../../../include/Errors/AppErrors.h"
+#include "../../../include/HTTP/HTTPJson.h"
 #include <optional>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+namespace{
+    json userToJson(const User& user)
+    {
+        json body;
+        body["id"] = user.id;
+        body["username"] = user.username;
+        body["email"] = user.email;
+        return body;
+    }
+
+    int findIdParam(const HTTPRequest & request)
+    {
+        auto idIt = request.pathParams.find("id");
+        if(idIt == request.pathParams.end())
+        {
+            throw ValidationError("Invalid path parametr: id");
+        }
+        try
+        {
+            return std::stoi(idIt->second);
+        }
+        catch(...)
+        {
+            throw ValidationError("Invalid path parametr: id");
+        }
+    }
+}
 
 UserController::UserController (UserService & userService) : userService(userService)
     {}
 
 HTTPResponse UserController::getUser(const HTTPRequest & request)
 {
-    auto idIt = request.pathParams.find("id");
-    if(idIt == request.pathParams.end())
-    {
-        return HTTPErrors::invalidPathParam("id");
-    }
-
-    int id{};
-
-    try
-    {
-        id = std::stoi(idIt->second);
-    }
-    catch(...)
-    {
-        return HTTPErrors::invalidPathParam("id");
-    }
+    int id = findIdParam(request);
     
-
     std::optional<User> user = userService.getUserById(id);
 
     if(!user.has_value())return HTTPErrors::notFound();
-
-    json body;
-    body["id"] = user->id;
-    body["username"] = user->username;
-    body["email"] = user->email;
-
-    HTTPResponse response;
-    response.body = body.dump();
-    return response;
+    return HTTPJson::makeResponse(
+        200,
+        "OK",
+        userToJson(*user)
+    );
 }
 
 HTTPResponse UserController::createUser(const HTTPRequest& request)
 {
-    json body;
+    json body = HTTPJson::parseObjson(request);
 
-    try
-    {
-        body = json::parse(request.body);
-    }
-    catch(...)
-    {
-        return HTTPErrors::invalidJson();
-    }
+    UserCreateCommand command{
+        HTTPJson::requireString(body, "username"),
+        HTTPJson::requireString(body, "email")
+    };
 
-    if(!body.is_object())
-    {
-        return HTTPErrors::validationError("Request body must be a JSON object");
-    }
-    if(!body.contains("username") || !body["username"].is_string())
-    {
-        return HTTPErrors::validationError("Failed username");
-    }
-    if(!body.contains("email") || !body["email"].is_string()){
-        return HTTPErrors::validationError("Failed email");
-    }
+    User user = userService.setUser(command);
 
-    std::string username = body["username"];
-    std::string email = body["email"];
-    if(username.empty() || email.empty())
-        return HTTPErrors::validationError("username or email is empty");
-
-    User user = userService.setUser(username, email);
-
-    HTTPResponse response;
-    response.statusCode = 201;
-    response.statusText = "Created";
-
-    json responseBody;
-    responseBody["id"] = user.id;
-    responseBody["username"] = user.username;
-    responseBody["email"] = user.email;
-    response.body = responseBody.dump();
-
-    response.headers["Content-Length"] = std::to_string(response.body.size());
-
-    return response;
+    return HTTPJson::makeResponse(
+        201,
+        "Created",
+        userToJson(user)
+    );
 }
 
 HTTPResponse UserController::deleteUser(const HTTPRequest& request)
 {
-    auto idIt = request.pathParams.find("id");
-    if(idIt == request.pathParams.end())
+    int id = findIdParam(request);
+
+    if(!userService.deleteUser(id))
     {
-        return HTTPErrors::invalidPathParam("id");
+        return HTTPErrors::notFound();
     }
+    json body = json::object();
 
-    int id{};
-
-    try
-    {
-        id = std::stoi(idIt->second);
-    }
-    catch(...)
-    {
-        return HTTPErrors::validationError("id");
-    }
-
-    int result = userService.deleteUser(id);
-
-    if(!result)return HTTPErrors::notFound();
-    
-    HTTPResponse response;
-    response.statusCode =204;
-    response.statusText = "No content";
-
-    response.body = "";
-    response.headers["Content-Lenght"] = "0";
-
-    return response;
+    return HTTPJson::makeResponse(
+        204,
+        "No content",
+        body
+    );
 }

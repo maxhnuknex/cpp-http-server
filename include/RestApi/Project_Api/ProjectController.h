@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ProjectService.h"
 
 #include "../../HTTP/HTTPResponse.h"
@@ -6,9 +8,10 @@
 
 class ProjectController{
     ProjectService& projectService;
-
 public:
     ProjectController(ProjectService & projectService);
 
     HTTPResponse createProjecte(const HTTPRequest& request);
+    HTTPResponse getProject(const HTTPRequest& request);
+    HTTPResponse deleteProject(const HTTPRequest& request);
 };

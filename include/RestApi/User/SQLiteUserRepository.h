@@ -8,8 +8,8 @@ class SQLiteUserRepository: public IUserRepository
 public:
     SQLiteUserRepository(Database& );
 
-    User createUser(const std::string&, const std::string&) override;
+    User createUser(UserCreateCommand&) override;
     std::optional<User> findById(int) override;
     std::optional<User> findByEmail(const std::string&) override;
-    bool deleteUser(int ) override;
+    bool deleteUser(int) override;
 };

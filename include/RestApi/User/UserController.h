@@ -1,3 +1,5 @@
+#pragma once
+
 #include "UserService.h"
 
 #include "../../HTTP/HTTPResponse.h"

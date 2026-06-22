@@ -25,6 +25,10 @@
 #include "../include/Database/DatabaseMigrator.h"
 
 #include "../include/RestApi/User/SQLiteUserRepository.h"
+#include "../include/RestApi/Project_Api/SQLiteProjectRepository.h"
+
+#include "../include/HTTP/HTTPErrors.h"
+#include "../include/Errors/AppErrors.h"
 
 int main()
 {
@@ -32,15 +36,16 @@ int main()
     DatabaseMigrator databaseMigrator(database);
     databaseMigrator.run();
 
-    SQLiteUserRepository repository(database);
+    SQLiteUserRepository userRepository(database);
+    SQLiteProjectRepository projectRepository(database);
 
     Router router;
 
-    UserService userService(repository);
+    UserService userService(userRepository);
     UserController userController(userService);
 
-    ProjectService projectService(userService);
-    ProjectController ProjectController(projectService);
+    ProjectService projectService(userRepository, projectRepository);
+    ProjectController projectController(projectService);
 
     IssueService issueService(userService, projectService);
     IssueController issueController(issueService);
@@ -59,9 +64,16 @@ int main()
         return userController.deleteUser(request);
     });
 
-    router.addRoute("POST", "/projects", [&ProjectController](const HTTPRequest& request){
-        return ProjectController.createProjecte(request);
+    router.addRoute("POST", "/projects", [&projectController](const HTTPRequest& request){
+        return projectController.createProjecte(request);
     });
+    router.addRoute("GET", "/projects/{id}", [&projectController](const HTTPRequest& request){
+        return projectController.getProject(request);
+    });
+    router.addRoute("DELETE", "/projects/{id}", [&projectController](const HTTPRequest& request){
+        return projectController.deleteProject(request);
+    });
+
 
     router.addRoute("POST", "/projects/{project_id}/issue", [&issueController](const HTTPRequest& request){
         return issueController.createIssue(request);
@@ -76,6 +88,38 @@ int main()
 
     Pipeline pipeline([&router](const HTTPRequest& req){
         return router.handle(req);
+    });
+
+    pipeline.addMiddleWare([](const HTTPRequest& request, Handler next){
+        try
+        {
+            return next(request);
+        }
+        catch(const ConflictError& error)
+        {
+            return HTTPErrors::conflict(error.what());
+        }
+        catch(const DatabaseError& error)
+        {
+            std::cerr << "[DATABASE ERROR] " << error.what() << std::endl;
+
+            return HTTPErrors::serverError();
+        }
+        catch(const ValidationError& error)
+        {
+            return HTTPErrors::validationError(error.what());
+        }
+        catch(const InvalidJson& error)
+        {
+            return HTTPErrors::invalidJson();
+        }
+        catch(const std::exception& error)
+        {
+            std::cerr << "[UNEXPECTED ERROR] " << error.what() << std::endl;
+
+            return HTTPErrors::serverError();
+        }
+        
     });
 
     pipeline.addMiddleWare([](const HTTPRequest& request, Handler next)

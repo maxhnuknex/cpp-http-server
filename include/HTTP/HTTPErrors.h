@@ -16,4 +16,7 @@ namespace HTTPErrors
     HTTPResponse validationError(const std::string& message);
     HTTPResponse invalidPathParam(const std::string& paramName);
     HTTPResponse unsupportedMediaType();
+
+    HTTPResponse conflict(const std::string& message);
+    HTTPResponse serverError();
 }
