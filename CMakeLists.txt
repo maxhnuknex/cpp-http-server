@@ -33,6 +33,7 @@ add_executable(server
 
     src/RestApi/Issue/IssueController.cpp
     src/RestApi/Issue/IssueService.cpp
+    src/RestApi/Issue/SQLiteIssueRepository.cpp
 
     src/Database/Database.cpp
     src/Database/DatabaseMigrator.cpp

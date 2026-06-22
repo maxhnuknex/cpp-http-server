@@ -6,10 +6,11 @@
 
 class IssueController{
     IssueService& issueService;
-
 public:
     IssueController(IssueService&);
 
     HTTPResponse createIssue(const HTTPRequest&);
+    HTTPResponse deleteIssue(const HTTPRequest&);
+    HTTPResponse getIssue(const HTTPRequest&);
 };
 

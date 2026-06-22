@@ -21,10 +21,10 @@ namespace{
     }
     int findIdParam(const HTTPRequest& request)
     {
-        auto itId = request.pathParams.find("id");
+        auto itId = request.pathParams.find("project_id");
         if(itId == request.pathParams.end())
         {
-            throw ValidationError("Invalid path parametr: id");
+            throw ValidationError("Invalid path parametr: project_id");
         }
         int id{};
         try
@@ -33,7 +33,7 @@ namespace{
         }
         catch(const std::exception& e)
         {
-            throw ValidationError("Invalid path parametr: id");
+            throw ValidationError("Invalid path parametr: project_id");
         }
     }
 }

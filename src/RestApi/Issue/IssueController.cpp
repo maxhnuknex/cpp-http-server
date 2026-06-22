@@ -1,7 +1,63 @@
 #include "../../../include/RestApi/Issue/IssueController.h"
+#include "../../../include/Errors/AppErrors.h"
+#include "../../../include/HTTP/HTTPJson.h"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+namespace{
+    json issueTojson(const Issue& issue)
+    {
+        json body;
+        body["id"] = issue.id;
+        body["projectId"] = issue.projectId;
+        body["authorId"] = issue.authorId;
+        if(issue.assigneeId.has_value())
+        {
+            body["assigneeId"] = *issue.assigneeId;
+        }
+        body["title"] = issue.title;
+        body["description"] = issue.description;
+        body["status"] = issue.status;
+        body["createAt"] = issue.createAt;
+
+        return body;
+    }
+    int findIdProject(const HTTPRequest& request)
+    {
+        auto itId = request.pathParams.find("project_id");
+        if(itId == request.pathParams.end())
+        {
+            throw ValidationError("Invalid path parametr: project_id");
+        }
+        int id{};
+        try
+        {
+            return std::stoi(itId->second);
+        }
+        catch(const std::exception& e)
+        {
+            throw ValidationError("Invalid path parametr: project_id");
+        }
+    }
+    int findIdIssue(const HTTPRequest& request)
+    {
+        auto itId = request.pathParams.find("issue_id");
+        if(itId == request.pathParams.end())
+        {
+            throw ValidationError("Invalid path parametr: issue_id");
+        }
+        int id{};
+        try
+        {
+            return std::stoi(itId->second);
+        }
+        catch(const std::exception& e)
+        {
+            throw ValidationError("Invalid path parametr: issue_id");
+        }
+    }
+}
 
 IssueController::IssueController(IssueService& issueService)
     :issueService(issueService)
@@ -9,56 +65,9 @@ IssueController::IssueController(IssueService& issueService)
 
 HTTPResponse IssueController::createIssue(const HTTPRequest& request)
 {
-    auto projectIdIt = request.pathParams.find("project_id");
-    if(projectIdIt == request.pathParams.end())
-    {
-        return HTTPErrors::invalidPathParam("project_id");
-    }
-    int projectId{};
-    try
-    {
-        projectId= std::stoi(projectIdIt->second);
-    }
-    catch(...)
-    {
-        return HTTPErrors::invalidPathParam("project_id");
-    }
+    int projectId = findIdProject(request);
     
-
-    json body;
-    try
-    {
-        body = json::parse(request.body);
-    }
-    catch(...)
-    {
-        return HTTPErrors::invalidJson();
-    }
-    if(!body.is_object())
-    {
-        return HTTPErrors::invalidJson();
-    }
-
-    if(!body.contains("authorId") || 
-        !body.contains("title") || 
-        !body.contains("description"))
-    {
-        return HTTPErrors::validationError("is not contains");
-    }
-
-    if(!body["title"].is_string() || body["title"].empty() || 
-        !body["description"].is_string() || body["description"].empty())
-    {
-        return HTTPErrors::validationError("is not string or empty");
-    }
-    std::string title = body["title"];
-    std::string description = body["description"];
-
-    if(!body["authorId"].is_number_integer())
-    {
-        return HTTPErrors::validationError("authorId is not integer");
-    }
-    int authorId = body["authorId"].get<int>();
+    json body = HTTPJson::parseObjson(request);
 
     std::optional<int> assigneeId = std::nullopt;
     if(body.contains("assigneeId"))
@@ -69,28 +78,58 @@ HTTPResponse IssueController::createIssue(const HTTPRequest& request)
         }
         assigneeId = body["assigneeId"].get<int>();
     }
+    IssueCreateCommand commamd{
+        projectId,
+        HTTPJson::requireInt(body, "authorId"),
+        assigneeId,
+        HTTPJson::requireString(body, "title"),
+        HTTPJson::requireString(body, "description"),
+    };
 
-    std::optional<Issue> issue = issueService.setIssue(projectId, authorId,
-                                                    assigneeId, title, description);
+    std::optional<Issue> issue = issueService.createIssue(commamd);
     if(!issue.has_value())
     {
         return HTTPErrors::notFound();
     }
 
-    HTTPResponse response;
-    response.statusCode = 201;
-    response.statusText = "Created";
+    return HTTPJson::makeResponse(
+        201,
+        "Created",
+        issueTojson(*issue)
+    );
+}
 
-    json responseBody;
-    responseBody["id"] = issue->id;
-    responseBody["projectId"] = issue->projectId;
-    responseBody["authorId"] = issue->authorId;
-    if(issue->assigneeId.has_value()) responseBody["assigneeId"] = issue->assigneeId;
-    responseBody["title"] = issue->title;
-    responseBody["description"] = issue->description;
-    response.body = responseBody.dump();
+HTTPResponse IssueController::getIssue(const HTTPRequest& request)
+{
+    int projectId = findIdProject(request);
+    int issueId = findIdIssue(request);
 
-    response.headers["Content-Lenght"] = std::to_string(response.body.size());
+    std::optional<Issue> issue= issueService.findById(projectId, issueId);
 
-    return response;
+    if(!issue)
+    {
+        return HTTPErrors::notFound();
+    }
+
+    return HTTPJson::makeResponse(
+        200,
+        "OK",
+        issueTojson(*issue) 
+    );
+}
+
+HTTPResponse IssueController::deleteIssue(const HTTPRequest& request)
+{
+    int projectId = findIdProject(request);
+    int issueId = findIdIssue(request);
+
+    int result = issueService.deleteIssue(projectId, issueId);
+
+    if(!result)return HTTPErrors::notFound();
+
+    return HTTPJson::makeResponse(
+        204,
+        "No content",
+        ""
+    );
 }

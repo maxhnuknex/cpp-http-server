@@ -1,25 +1,25 @@
 #pragma once
 
 #include "Issue.h"
-#include "../User/UserService.h"
-#include "../Project_Api/ProjectService.h"
+#include "../User/IUserRepository.h"
+#include "../Project_Api/IProjectPepository.h"
+#include "IIssueRepository.h"
 
-#include <unordered_map>
+#include <optional>
 
 
 class IssueService{
-    UserService& userService;
-    ProjectService& projectService;
-
-    std::unordered_map<int, Issue> issues;
-
-    int nextId =1;
+    IUserRepository& userRepository;
+    IProjectRepository& projectRepositoty;
+    IIssueRepository& issueRepository;
 public:
-    IssueService(UserService&, ProjectService&);
+    IssueService(
+        IUserRepository& userRepository,
+        IProjectRepository& projectRepositoty,
+        IIssueRepository& issueRepository
+    );
 
-    std::optional<Issue> setIssue(int projectId,
-                                int authorId,
-                                std::optional<int> assigneeId,
-                                const std::string& title,
-                                const std::string& description);
+    std::optional<Issue> createIssue(IssueCreateCommand);
+    std::optional<Issue> findById(int projectId, int IssueId);
+    bool deleteIssue(int projectId, int IssueId);
 };

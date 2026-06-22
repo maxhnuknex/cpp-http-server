@@ -1,31 +1,42 @@
 #include "../../../include/RestApi/Issue/IssueService.h"
 
-IssueService::IssueService(UserService& userService, ProjectService& projectService)
-    : userService(userService), projectService(projectService)
+IssueService::IssueService(
+    IUserRepository& userRepository,
+    IProjectRepository& projectRepositoty,
+    IIssueRepository& issueRepository
+)
+    : userRepository(userRepository),
+    projectRepositoty(projectRepositoty),
+    issueRepository(issueRepository)
     {}
 
-std::optional<Issue> IssueService::setIssue(int projectId,
-                                int authorId,
-                                std::optional<int> assigneeId,
-                                const std::string& title,
-                                const std::string& description)
+
+std::optional<Issue> IssueService::findById(int projectId, int IssueId)
 {
-    std::optional<Project> project = projectService.getProject(projectId);
-    if(!project.has_value())return std::nullopt;
-
-    std::optional<User> user = userService.getUserById(authorId);
-    if(!user.has_value()) return std::nullopt;
-
-    if(assigneeId.has_value())
-    {
-        std::optional<User> user = userService.getUserById(*assigneeId);
-        if(!user.has_value())return std::nullopt;
-    }
-
-    Issue issue{nextId, projectId, authorId,assigneeId, title, description, "open"};
-    issues[nextId] = issue;
-    nextId++;
-
-    return issue;
+    return issueRepository.findIssueId(projectId, IssueId);
 }
 
+bool IssueService::deleteIssue(int projectId, int IssueId)
+{
+    return issueRepository.deleteIssue(projectId, IssueId);
+}
+
+std::optional<Issue> IssueService::createIssue(IssueCreateCommand command)
+{
+    if(!userRepository.findById(command.authorId))
+    {
+        return std::nullopt;
+    }
+    if(!projectRepositoty.findById(command.projectId))
+    {
+        return std::nullopt;
+    }
+    if(command.assigneeId)
+    {
+        if(!userRepository.findById(*command.assigneeId))
+        {
+            return std::nullopt;
+        }
+    }
+    return issueRepository.createIssue(command);
+}

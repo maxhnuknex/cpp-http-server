@@ -26,6 +26,7 @@
 
 #include "../include/RestApi/User/SQLiteUserRepository.h"
 #include "../include/RestApi/Project_Api/SQLiteProjectRepository.h"
+#include "../include/RestApi/Issue/SQLiteIssueRepository.h"
 
 #include "../include/HTTP/HTTPErrors.h"
 #include "../include/Errors/AppErrors.h"
@@ -38,6 +39,7 @@ int main()
 
     SQLiteUserRepository userRepository(database);
     SQLiteProjectRepository projectRepository(database);
+    SQLiteIssueRepository issueRepository(database);
 
     Router router;
 
@@ -47,7 +49,7 @@ int main()
     ProjectService projectService(userRepository, projectRepository);
     ProjectController projectController(projectService);
 
-    IssueService issueService(userService, projectService);
+    IssueService issueService(userRepository, projectRepository, issueRepository);
     IssueController issueController(issueService);
 
     router.addRoute("GET", "/users/{id}", [&userController](const HTTPRequest& request)
@@ -67,16 +69,22 @@ int main()
     router.addRoute("POST", "/projects", [&projectController](const HTTPRequest& request){
         return projectController.createProjecte(request);
     });
-    router.addRoute("GET", "/projects/{id}", [&projectController](const HTTPRequest& request){
+    router.addRoute("GET", "/projects/{project_id}", [&projectController](const HTTPRequest& request){
         return projectController.getProject(request);
     });
-    router.addRoute("DELETE", "/projects/{id}", [&projectController](const HTTPRequest& request){
+    router.addRoute("DELETE", "/projects/{project_id}", [&projectController](const HTTPRequest& request){
         return projectController.deleteProject(request);
     });
 
 
-    router.addRoute("POST", "/projects/{project_id}/issue", [&issueController](const HTTPRequest& request){
+    router.addRoute("POST", "/projects/{project_id}/issues", [&issueController](const HTTPRequest& request){
         return issueController.createIssue(request);
+    });
+    router.addRoute("GET", "/projects/{project_id}/issues/{issue_id}", [&issueController](const HTTPRequest& request){
+        return issueController.getIssue(request);
+    });
+    router.addRoute("DELETE", "/projects/{project_id}/issues/{issue_id}", [&issueController](const HTTPRequest& request){
+        return issueController.deleteIssue(request);
     });
 
     StaticFileHandler staticFile("public");
